@@ -4,8 +4,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-
-<AnchorPane prefHeight="279.0" prefWidth="529.0" xmlns="http://javafx.com/javafx/" xmlns:fx="http://javafx.com/fxml/" fx:controller="client.controllers.AuthDialogController">
+<AnchorPane prefHeight="279.0" prefWidth="529.0" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="client.controllers.AuthDialogController">
     <children>
         <Label layoutX="31.0" layoutY="53.0" prefHeight="37.0" prefWidth="81.0" text="Login:">
             <font>
@@ -27,11 +26,10 @@
                 <Font size="24.0" />
             </font>
         </PasswordField>
-        <Button layoutX="213.0" layoutY="203.0" mnemonicParsing="false" onAction="#checkAuth" text="Button">
+        <Button layoutX="213.0" layoutY="203.0" mnemonicParsing="false" onAction="#checkAuth" prefHeight="51.0" prefWidth="188.0" text="Вход">
             <font>
                 <Font size="24.0" />
             </font>
         </Button>
     </children>
 </AnchorPane>
-

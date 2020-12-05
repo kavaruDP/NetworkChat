@@ -1,5 +1,6 @@
 package client.controllers;
 
+import client.MyTimerTask;
 import client.NetworkClient;
 import client.models.Network;
 import javafx.event.ActionEvent;
@@ -14,8 +15,16 @@ public class AuthDialogController {
 
     private Network network;
     private NetworkClient networkClient;
+    private MyTimerTask timerTask;
+
+    public void setTimerTask(MyTimerTask timerTask) {
+        this.timerTask = timerTask;
+    }
+
+
 
     @FXML
+    // Действие при нажатии на кнопку
     public void checkAuth() {
         String login = loginField.getText();
         String password = passField.getText();
@@ -27,6 +36,7 @@ public class AuthDialogController {
 
         String authErrorMessage = network.sendAuthCommand(login, password);
         if (authErrorMessage == null) {
+            timerTask.sethasTimeout(false);
             networkClient.openChat();
         }
         else {
@@ -44,4 +54,3 @@ public class AuthDialogController {
         this.networkClient = networkClient;
     }
 }
-
