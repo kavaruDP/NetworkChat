@@ -1,7 +1,7 @@
 package client;
 
 import client.controllers.AuthDialogController;
-import client.controllers.ViewController;
+import client.controllers.ChatController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -11,66 +11,80 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import client.models.Network;
 
+import java.io.IOException;
+import java.net.Socket;
 import java.util.ArrayList;
-import java.util.List;
-
+import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class NetworkClient extends Application {
 
     public static final ArrayList<String> USERS_TEST_DATA = new ArrayList<String>();
-            // метод .of не работает
-            //.of("Boris", "Timofei", "Martin");
+            //.of("Борис_Николаевич", "Гендальф_Серый", "Мартин_Некотов");
     public Stage primaryStage;
     private Stage authStage;
     private Network network;
-    private ViewController viewController;
-    //private final String PATH_AUTH_XML = "auth-dialog.fxml";
-    //private final String PATH_VIEW_XML = "view.fxml";
+    private ChatController chatController;
+    private MyTimerTask myTimerTask;
+
+    public static void main(String[] args) {
+        launch(args);
+    }
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        USERS_TEST_DATA.add("Boris");
-        USERS_TEST_DATA.add("Timofei");
-        USERS_TEST_DATA.add("Martin");
 
-        this.primaryStage = primaryStage;
+            this.primaryStage = primaryStage;
+            network = new Network();
+            if (!network.connect()) {
+                showErrorMessage("", "Ошибка подключения к серверу");
+                return;
+            }
+
+            openAuthDialog(primaryStage);
+            createChatDialog(primaryStage);
+    }
+
+    private void createChatDialog(Stage primaryStage) throws IOException {
+        USERS_TEST_DATA.add("Борис_Николаевич");
+        USERS_TEST_DATA.add("Гендальф_Серый");
+        USERS_TEST_DATA.add("Мартин_Некотов");
+        FXMLLoader mainLoader = new FXMLLoader();
+        mainLoader.setLocation(NetworkClient.class.getResource("views/view.fxml"));
+
+        Parent root = mainLoader.load();
+
+        primaryStage.setTitle("Messenger");
+        primaryStage.setScene(new Scene(root, 600, 400));
+
+        chatController = mainLoader.getController();
+        chatController.setNetwork(network);
+
+
+        primaryStage.setOnCloseRequest(event -> network.close());
+    }
+
+    private void openAuthDialog(Stage primaryStage) throws IOException {
         FXMLLoader authLoader = new FXMLLoader();
         authLoader.setLocation(NetworkClient.class.getResource("views/auth-dialog.fxml"));
         Parent page = authLoader.load();
-
         authStage = new Stage();
+
         authStage.setTitle("Авторизация");
         authStage.initModality(Modality.WINDOW_MODAL);
         authStage.initOwner(primaryStage);
         Scene scene = new Scene(page);
         authStage.setScene(scene);
         authStage.show();
-        FXMLLoader loader = new FXMLLoader();
-        //"client/views/view.fxml"
-        loader.setLocation(NetworkClient.class.getResource("views/view.fxml"));
-
-        Parent root = loader.load();
-
-        primaryStage.setTitle("Messenger");
-        primaryStage.setScene(new Scene(root, 600, 400));
-//        primaryStage.show();
-
-        network = new Network();
-
         AuthDialogController authDialogController = authLoader.getController();
         authDialogController.setNetwork(network);
         authDialogController.setNetworkClient(this);
 
-        if (!network.connect()) {
-            showErrorMessage("", "Ошибка подключения к серверу");
-        }
-
-        viewController = loader.getController();
-        viewController.setNetwork(network);
-
-//        network.waitMessage(viewController);
-
-        primaryStage.setOnCloseRequest(windowEvent -> network.close());
+        myTimerTask = new MyTimerTask();
+        authDialogController.setTimerTask(myTimerTask);
+        myTimerTask.setSocket(network.getSocket());
+        new Timer().schedule(myTimerTask, 120000);
     }
 
     public static void showErrorMessage(String message, String errorMessage) {
@@ -81,9 +95,6 @@ public class NetworkClient extends Application {
         alert.showAndWait();
     }
 
-    public static void main(String[] args) {
-        launch(args);
-    }
 
     public Stage getPrimaryStage() {
         return primaryStage;
@@ -93,6 +104,8 @@ public class NetworkClient extends Application {
         authStage.close();
         primaryStage.show();
         primaryStage.setTitle(network.getUsername());
-        network.waitMessage(viewController);
+        System.out.println(network.getUsername());
+        chatController.setUsernameTitle(network.getUsername());
+        network.waitMessage(chatController);
     }
 }

@@ -1,6 +1,7 @@
 import chat.MyServer;
 
 import java.io.IOException;
+import java.io.InterruptedIOException;
 
 public class ServerApp {
     private static final int DEFAULT_PORT = 8189;
@@ -15,7 +16,8 @@ public class ServerApp {
 
         try {
             new MyServer(port).start();
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             System.out.println("Ошибка!");
             e.printStackTrace();
             System.exit(1);
